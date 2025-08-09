@@ -50,6 +50,13 @@ Latencia estimada unidireccional: 0.54 microsegundos
 
 ## Análisis
 
-En esta tarea se midió la latencia de comunicación punto a punto entre dos procesos, se obtuvo un valor promedio de aproximadamente 3.2 microsegundos por mensaje (ida y vuelta). Este resultado puede variar según el estado del sistema, el tamaño del mensaje o el hardware utilizado. 
+En las pruebas de comunicación punto a punto usando MPI_Send y MPI_Recv, la latencia promedio obtenida fue de aproximadamente 3.2 microsegundos ida y vuelta, equivalente a unos 1.6 microsegundos unidireccionalmente. Este valor refleja un tiempo de transmisión muy bajo, pero no constante: se observaron pequeñas variaciones asociadas a la carga de la CPU, el sistema operativo y la administración de procesos. En sistemas más ocupados o con hardware menos optimizado para HPC, esta latencia podría aumentar significativamente.
+Es importante destacar que en mensajes muy pequeños (como el de 1 byte en este experimento), la latencia está dominada por el tiempo de configuración y envío, no por la transferencia de datos. Para mensajes más grandes, el tiempo de transmisión total estaría influenciado tanto por la latencia como por el ancho de banda disponible.
 
-Por otro lado, las operaciones colectivas (Bcast, Scatter, Reduce) permitieron distribuir, procesar y recolectar datos de forma eficiente entre varios procesos. Estas funciones reducen la complejidad del código. Ambos enfoques cumplen roles distintos: la comunicación punto a punto ofrece mayor control y precisión, mientras que las operaciones colectivas simplifican tareas comunes en programas paralelos. 
+En cuanto a las operaciones colectivas (MPI_Bcast, MPI_Scatter, MPI_Reduce), su rendimiento fue notablemente eficiente al manejar grandes volúmenes de datos. Procesar un millón de elementos distribuidos en 4 procesos permitió dividir la carga de trabajo de manera equilibrada, obteniendo un mínimo de 0.00, un máximo de 100.00 y un promedio global muy cercano al valor teórico esperado (~50). El uso de estas operaciones redujo la complejidad del código y minimizó el número de llamadas de comunicación necesarias.
+
+Comparando ambos enfoques:
+
+Punto a punto es más flexible y permite un control fino del flujo de mensajes, pero requiere programar manualmente la lógica de envío/recepción y puede volverse complejo en sistemas con muchos procesos.
+Colectivas simplifican y optimizan patrones comunes de comunicación, aprovechando implementaciones internas altamente optimizadas de MPI, lo que suele traducirse en menor latencia global y mejor escalabilidad en sistemas grandes.
+En resumen, las pruebas muestran que la elección entre comunicación punto a punto o colectiva depende del patrón de comunicación requerido: para intercambios simples y controlados entre pocos procesos, punto a punto es suficiente; para distribuir y recolectar grandes volúmenes de datos en sistemas con muchos procesos, las operaciones colectivas son más adecuadas y eficientes.
